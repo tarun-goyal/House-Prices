@@ -6,3 +6,4 @@ def find_correlated_features(design_matrix):
     corr_matrix = corr_matrix['SalePrice']
     corr_matrix = corr_matrix[corr_matrix >= 0.6]
     return list(corr_matrix.index)
+
