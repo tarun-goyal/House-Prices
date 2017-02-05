@@ -1,3 +1,4 @@
+import pandas as pd
 
 
 def _drop_features_with_missing_values(design_matrix, threshold=0.2):
