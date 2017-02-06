@@ -46,22 +46,25 @@ class RandomForestModel(object):
     def _build_model(train_data, predictors):
         """Model-3: Random Forest model using all the features available in
         data. Model classifier with all default parameter values."""
-        model = RandomForestRegressor()
+        model = RandomForestRegressor(n_estimators=100)
         model.fit(train_data[predictors], train_data['SalePrice'])
         return model
 
     def _calculate_evaluation_metric(self, iterations=50):
         """Calculate evaluation metrics - RMSE and relative RMSE"""
         rmse_group = []
+        model_count = 0
         for itr in xrange(iterations):
+            model_count += 1
             training, validation = _train_validation_split(self.design_matrix)
             model = self._build_model(training, self.predictors)
             predicted = cross_val_predict(model, validation[self.predictors],
                                           validation['SalePrice'], cv=10)
-            rmse = np.sqrt(np.mean((predicted - validation['SalePrice']) ** 2))
+            rmse = np.sqrt(np.mean((np.log(predicted) -
+                                    np.log(validation['SalePrice'])) ** 2))
             rmse_group.append(rmse)
-        relative_rmse = np.mean(rmse_group) / np.mean(training['SalePrice'])
-        return relative_rmse
+            print model_count
+        return np.mean(rmse_group)
 
     def _make_predictions(self):
         """Predict on provided test data"""
@@ -70,16 +73,20 @@ class RandomForestModel(object):
         test_data = _remove_any_more_null_rows(test_data)
         predictors = [pred for pred in self.predictors if pred in list(
             test_data.columns.values)]
+        features = [i for i in predictors]
+        model_coefficients = pd.DataFrame(columns=features)
         model = self._build_model(self.design_matrix, predictors)
+        model_coefficients.loc[0] = model.feature_importances_
         test_data['SalePrice'] = model.predict(test_data[predictors])
-        return test_data
+        return test_data, model_coefficients
 
     def submit_solution(self):
         """Submit the solution file"""
-        submission = self._make_predictions()
+        submission, model_coefficients = self._make_predictions()
         submission = submission[['Id', 'SalePrice']]
-        submission.to_csv("../Submissions/submission_random_forest1_" + str(
+        submission.to_csv("../Submissions/submission_random_forest2_" + str(
             self._calculate_evaluation_metric()) + ".csv", index=False)
-
+        model_coefficients.to_csv("../Model_results/rf2_coefficients.csv",
+                                  index=False)
 
 RandomForestModel().submit_solution()
