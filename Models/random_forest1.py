@@ -6,8 +6,8 @@ import data_cleansing as dc
 
 
 # Reading data
-house_prices = pd.read_csv("../Data/train.csv")
-test = pd.read_csv("../Data/test.csv")
+house_prices = pd.read_csv("../Data/train_imputed.csv")
+test = pd.read_csv("../Data/test_imputed.csv")
 
 
 def _train_validation_split(design_matrix):
@@ -44,18 +44,19 @@ class RandomForestModel(object):
 
     @staticmethod
     def _build_model(train_data, predictors):
-        """Model-3: Random Forest model using all the features available in
-        data. Model classifier with all default parameter values."""
-        model = RandomForestRegressor(n_estimators=100)
+        """Model-4: Random Forest model using the best estimator identified by
+        grid search algorithm."""
+        model = RandomForestRegressor(
+            n_estimators=50, warm_start=True, bootstrap=True, oob_score=True,
+            max_features='auto', min_samples_split=5, min_samples_leaf=1,
+            verbose=2)
         model.fit(train_data[predictors], train_data['SalePrice'])
         return model
 
-    def _calculate_evaluation_metric(self, iterations=50):
+    def _calculate_evaluation_metric(self, iterations=10):
         """Calculate evaluation metrics - RMSE and relative RMSE"""
         rmse_group = []
-        model_count = 0
         for itr in xrange(iterations):
-            model_count += 1
             training, validation = _train_validation_split(self.design_matrix)
             model = self._build_model(training, self.predictors)
             predicted = cross_val_predict(model, validation[self.predictors],
@@ -63,7 +64,7 @@ class RandomForestModel(object):
             rmse = np.sqrt(np.mean((np.log(predicted) -
                                     np.log(validation['SalePrice'])) ** 2))
             rmse_group.append(rmse)
-            print model_count
+        print rmse_group
         return np.mean(rmse_group)
 
     def _make_predictions(self):
@@ -84,9 +85,10 @@ class RandomForestModel(object):
         """Submit the solution file"""
         submission, model_coefficients = self._make_predictions()
         submission = submission[['Id', 'SalePrice']]
-        submission.to_csv("../Submissions/submission_random_forest2_" + str(
-            self._calculate_evaluation_metric()) + ".csv", index=False)
-        model_coefficients.to_csv("../Model_results/rf2_coefficients.csv",
-                                  index=False)
+        submission.to_csv(
+            "../Submissions/submission_RF_best_estimator_" + str(
+                self._calculate_evaluation_metric()) + ".csv", index=False)
+        model_coefficients.to_csv(
+            "../Model_results/rf_best_estimator_coefficients.csv", index=False)
 
 RandomForestModel().submit_solution()
