@@ -1,4 +1,4 @@
-from sklearn import linear_model
+from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split, cross_val_predict
 import pandas as pd
 import numpy as np
@@ -44,8 +44,7 @@ class LinearRegModel(object):
     def _build_model(train_data, predictors):
         """Model-2: Linear regression model using only highly correlated
         features with houses' sale prices"""
-        model = linear_model.LinearRegression(fit_intercept=True,
-                                              normalize=True)
+        model = LinearRegression(fit_intercept=True, normalize=True)
         model.fit(train_data[predictors], train_data['SalePrice'])
         return model
 

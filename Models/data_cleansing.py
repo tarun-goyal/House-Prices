@@ -1,9 +1,10 @@
+import pandas as pd
 
 
-def _drop_features_with_missing_values(design_matrix, threshold=0.2):
+def _drop_features_with_missing_values(design_matrix):
     """Drop features from the data frame having missing values above a given
     threshold."""
-    drop_cols = ['GarageYrBlt', 'LotFrontage']
+    drop_cols = ['GarageYrBlt']
     design_matrix.drop(drop_cols, axis=1, inplace=True)
     return design_matrix
 
