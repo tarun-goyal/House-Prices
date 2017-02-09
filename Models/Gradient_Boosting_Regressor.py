@@ -47,8 +47,8 @@ class GradientBoostingModel(object):
         """Model: Gradient Boosting model using the best estimator
         parameters"""
         model = GradientBoostingRegressor(
-            n_estimators=500, warm_start=True, max_features='auto',
-            min_samples_split=5, min_samples_leaf=1, learning_rate=0.1,
+            n_estimators=1000, warm_start=True, max_features='auto',
+            min_samples_split=4, min_samples_leaf=1, learning_rate=0.1,
             loss='ls', max_depth=3, verbose=2)
         model.fit(train_data[predictors], train_data['SalePrice'])
         return model
@@ -88,7 +88,7 @@ class GradientBoostingModel(object):
         submission.to_csv(
             "../Submissions/submission_GB_best_estimator_" + str(
                 self._calculate_evaluation_metric()) + ".csv", index=False)
-        model_coefficients.to_csv(
-            "../Model_results/GB_best_estimator_coefficients.csv", index=False)
+        #model_coefficients.to_csv(
+        #    "../Model_results/GB_best_estimator_coefficients.csv", index=False)
 
 GradientBoostingModel().submit_solution()

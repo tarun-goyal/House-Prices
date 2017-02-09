@@ -38,16 +38,13 @@ class GradientBoostingModel(object):
 
     @staticmethod
     def _define_regressor_and_parameter_candidates():
-        regressor = GradientBoostingRegressor(warm_start=True)
+        regressor = GradientBoostingRegressor(
+            warm_start=True, max_features='auto', min_samples_leaf=1,
+            loss='ls', max_depth=3, verbose=2)
         parameters = {
-            'loss': ('ls', 'huber'),
-            'learning_rate': [0.1, 0.3, 0.5],
             'n_estimators': [500, 1000],
-            'max_features': ('sqrt', 'auto'),
-            'min_samples_split': [2, 5, 10],
-            'min_samples_leaf': [1, 2],
-            'alpha': [0.5, 0.9],
-            'max_depth': [3, 4, 5]}
+            'learning_rate': [0.01, 0.03, 0.05, 0.07, 0.1],
+            'min_samples_split': [2, 3, 4, 5]}
         return regressor, parameters
 
     def grid_search_for_best_estimator(self):
@@ -55,12 +52,12 @@ class GradientBoostingModel(object):
         estimator"""
         regressor, parameters = self\
             ._define_regressor_and_parameter_candidates()
-        model = GridSearchCV(regressor, parameters, cv=5, verbose=2, n_jobs=8)
+        model = GridSearchCV(regressor, parameters, cv=5, verbose=2, n_jobs=4)
         model.fit(self.design_matrix[self.predictors],
                   self.design_matrix['SalePrice'])
         cv_results = model.cv_results_
         results = DataFrame.from_dict(cv_results, orient='columns')
-        results.to_csv('../Model_results/GB_GridSearch_results.csv',
+        results.to_csv('../Model_results/GB_GridSearch2_results.csv',
                        index=False)
 
 GradientBoostingModel().grid_search_for_best_estimator()
