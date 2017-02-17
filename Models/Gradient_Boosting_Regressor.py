@@ -6,8 +6,8 @@ import data_cleansing as dc
 
 
 # Reading data
-house_prices = pd.read_csv("../Data/train_imputed.csv")
-test = pd.read_csv("../Data/test_imputed.csv")
+house_prices = pd.read_csv("../Data/train.csv")
+test = pd.read_csv("../Data/test.csv")
 
 
 def _train_validation_split(design_matrix):
@@ -16,31 +16,15 @@ def _train_validation_split(design_matrix):
     return training, validation
 
 
-def _create_dummies_for_categorical_features(design_matrix):
-    feature_types = dict(design_matrix.dtypes)
-    categorical_features = [feature for feature, type in feature_types
-                            .iteritems() if type == 'object']
-    design_matrix = pd.get_dummies(design_matrix, prefix=categorical_features,
-                                   columns=categorical_features)
-    return design_matrix
-
-
-def _remove_any_more_null_rows(design_matrix):
-    null_rows = pd.isnull(design_matrix).any(1).nonzero()[0]
-    design_matrix.drop(design_matrix.index[null_rows], inplace=True)
-    return design_matrix
-
-
 class GradientBoostingModel(object):
 
     def __init__(self):
+        self.mean = np.mean(house_prices['SalePrice'])
+        self.stdev = np.std(house_prices['SalePrice'])
         self.design_matrix = dc.clean_data(house_prices)
-        self.design_matrix = _create_dummies_for_categorical_features(
-            self.design_matrix)
         self.predictors = [ele for ele in list(
             self.design_matrix.columns.values) if ele not in
                            ['Id', 'SalePrice']]
-        _remove_any_more_null_rows(self.design_matrix)
 
     @staticmethod
     def _build_model(train_data, predictors):
@@ -61,6 +45,10 @@ class GradientBoostingModel(object):
             model = self._build_model(training, self.predictors)
             predicted = cross_val_predict(model, validation[self.predictors],
                                           validation['SalePrice'], cv=10)
+            # Un-normalizing the output before calculating error
+            predicted = (predicted * self.stdev) + self.mean
+            validation['SalePrice'] = (validation['SalePrice'] * self.stdev)\
+                + self.mean
             rmse = np.sqrt(np.mean((np.log(predicted) -
                                     np.log(validation['SalePrice'])) ** 2))
             rmse_group.append(rmse)
@@ -70,8 +58,6 @@ class GradientBoostingModel(object):
     def _make_predictions(self):
         """Predict on provided test data"""
         test_data = dc.clean_data(test)
-        test_data = _create_dummies_for_categorical_features(test_data)
-        test_data = _remove_any_more_null_rows(test_data)
         predictors = [pred for pred in self.predictors if pred in list(
             test_data.columns.values)]
         features = [i for i in predictors]
@@ -79,14 +65,17 @@ class GradientBoostingModel(object):
         model = self._build_model(self.design_matrix, predictors)
         model_coefficients.loc[0] = model.feature_importances_
         test_data['SalePrice'] = model.predict(test_data[predictors])
+        test_data['SalePrice'] = (test_data['SalePrice'] * self.stdev)\
+            + self.mean
         return test_data, model_coefficients
 
     def submit_solution(self):
         """Submit the solution file"""
-        submission, model_coefficients = self._make_predictions()
-        submission = submission[['Id', 'SalePrice']]
+        predictions, model_coefficients = self._make_predictions()
+        submission = test[['Id']]
+        submission['SalePrice'] = predictions['SalePrice']
         submission.to_csv(
-            "../Submissions/submission_GB_best_estimator_" + str(
+            "../Submissions/submission_GB_normalized_" + str(
                 self._calculate_evaluation_metric()) + ".csv", index=False)
         #model_coefficients.to_csv(
         #    "../Model_results/GB_best_estimator_coefficients.csv", index=False)
