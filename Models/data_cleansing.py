@@ -1,21 +1,62 @@
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import Imputer
+from sklearn.linear_model import LinearRegression
 
 
 def _impute_missing_values(design_matrix):
     """Impute values for all the features having missing values."""
     missing_cols = {'cont': ['LotFrontage', 'MasVnrArea'],
                     'cat': ['MasVnrType', 'Electrical', 'GarageYrBlt']}
-    design_matrix = _imputation_strategy(design_matrix, missing_cols['cont'],
-                                         strategy='mean')
+    design_matrix = _imputation_using_regression(design_matrix)
+    design_matrix = _imputation_using_mean(design_matrix, missing_cols['cont'],
+                                              strategy='mean')
     for col in missing_cols['cat']:
         design_matrix = design_matrix.fillna(design_matrix[col].value_counts()
                                              .index[0])
     return design_matrix
 
 
-def _imputation_strategy(design_matrix, col_list, strategy):
+def _imputation_using_regression(design_matrix):
+
+    missing_col = 'LotFrontage'
+    predictors = ['LotArea', 'LotShape', 'LotConfig']
+    non_na_rows = design_matrix.dropna(subset=[missing_col])
+    na_rows = design_matrix[design_matrix[missing_col].isnull()]
+
+    non_na_rows = _create_dummies_for_categorical_features(non_na_rows)
+    na_rows = _create_dummies_for_categorical_features(na_rows)
+
+    predictors_after_dummy_creation = []
+    # column names of categorical var have changed after dummy creation
+    for pred in predictors:
+        _ = [x for x in non_na_rows.columns if pred in x]
+        predictors_after_dummy_creation.extend(_)
+
+    for pred in predictors_after_dummy_creation:
+        if pred not in na_rows.columns:  #na rows didn't contain LotConfig_FR3
+            na_rows[pred] = 0.
+
+    model = LinearRegression(fit_intercept=True)
+    model.fit(non_na_rows[predictors_after_dummy_creation],
+              non_na_rows['LotFrontage'])
+
+    na_rows['LotFrontage'] = model.predict(
+        na_rows[predictors_after_dummy_creation])
+
+    # nom_na rows and na_rows now contain extra dummy variables, so can't
+    # directly use their concatenated DF.
+    design_matrix_helper = pd.concat([non_na_rows, na_rows], ignore_index=True)
+    design_matrix = pd.merge(
+        design_matrix, design_matrix_helper[['Id', 'LotFrontage']],
+        how='left', on='Id')
+    design_matrix.drop('LotFrontage_x', axis=1, inplace=True)
+    design_matrix.rename(columns={'LotFrontage_y': 'LotFrontage'},
+                         inplace=True)
+    return design_matrix
+
+
+def _imputation_using_mean(design_matrix, col_list, strategy):
     """Strategy behind imputation"""
     for col in col_list:
         impute = Imputer(strategy=strategy, axis=0)
