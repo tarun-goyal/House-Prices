@@ -20,7 +20,6 @@ class XGBoostingModel(object):
 
     def __init__(self):
         self.design_matrix = dc.clean_data(house_prices)
-        print self.design_matrix.shape
         self.predictors = [ele for ele in list(
             self.design_matrix.columns.values) if ele not in
                            ['Id', 'SalePrice']]
@@ -35,7 +34,7 @@ class XGBoostingModel(object):
         model.fit(train_data[predictors], train_data['SalePrice'])
         return model
 
-    def _calculate_evaluation_metric(self, iterations=5):
+    def _calculate_evaluation_metric(self, iterations=10):
         """Calculate cross validation score based on RMSE"""
         rmse_group = []
         for itr in xrange(iterations):
@@ -55,22 +54,18 @@ class XGBoostingModel(object):
         test_data = dc.clean_data(test)
         predictors = [pred for pred in self.predictors if pred in list(
             test_data.columns.values)]
-        features = [i for i in predictors]
-        model_coefficients = pd.DataFrame(columns=features)
         model = self._build_model(self.design_matrix, predictors)
-        # model_coefficients.loc[0] = model.booster().get_fscore()
         test_data['SalePrice'] = model.predict(test_data[predictors])
-        return test_data, model_coefficients
+        return test_data
 
     def submit_solution(self):
         """Submit the solution file"""
-        predictions, model_coefficients = self._make_predictions()
+        eval_metric = self._calculate_evaluation_metric()
+        predictions = self._make_predictions()
         submission = test[['Id']]
         submission['SalePrice'] = predictions['SalePrice']
         submission.to_csv(
-            "../Submissions/submission_XGB_best_estimator_" + str(
-                self._calculate_evaluation_metric()) + ".csv", index=False)
-        # model_coefficients.to_csv(
-        #    "../Model_results/XGB_default_feat_imp.csv", index=False)
+            "../Submissions/submission_XGB_best_estimator3_" + str(
+                eval_metric) + ".csv", index=False)
 
 XGBoostingModel().submit_solution()
