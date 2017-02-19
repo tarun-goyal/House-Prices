@@ -89,7 +89,7 @@ def _create_dummies_for_categorical_features(design_matrix):
 def clean_data(design_matrix):
     """Cleaning raw data before model processing."""
     design_matrix = _impute_missing_values(design_matrix)
-    design_matrix = _normalize_continuous_features(design_matrix)
+    # design_matrix = _normalize_continuous_features(design_matrix)
     design_matrix = _create_dummies_for_categorical_features(design_matrix)
     return design_matrix
 
