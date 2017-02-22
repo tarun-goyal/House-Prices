@@ -1,19 +1,19 @@
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import Imputer
-from sklearn.linear_model import LinearRegression
+from xgboost.sklearn import XGBRegressor
 
 
 def _impute_missing_values(design_matrix):
     """Impute values for all the features having missing values."""
-    missing_cols = {'cont': ['LotFrontage', 'MasVnrArea'],
+    missing_cols = {'cont': ['MasVnrArea'],
                     'cat': ['MasVnrType', 'Electrical', 'GarageYrBlt']}
     design_matrix = _imputation_using_regression(design_matrix)
     design_matrix = _imputation_using_mean(design_matrix, missing_cols['cont'],
-                                              strategy='mean')
+                                           strategy='mean')
     for col in missing_cols['cat']:
-        design_matrix = design_matrix.fillna(design_matrix[col].value_counts()
-                                             .index[0])
+        design_matrix[col] = design_matrix[col].fillna(
+            design_matrix[col].value_counts().index[0])
     return design_matrix
 
 
@@ -37,7 +37,8 @@ def _imputation_using_regression(design_matrix):
         if pred not in na_rows.columns:  #na rows didn't contain LotConfig_FR3
             na_rows[pred] = 0.
 
-    model = LinearRegression(fit_intercept=True)
+    model = XGBRegressor(n_estimators=5000, learning_rate=0.01, subsample=0.8,
+                         colsample_bytree=0.8)
     model.fit(non_na_rows[predictors_after_dummy_creation],
               non_na_rows['LotFrontage'])
 

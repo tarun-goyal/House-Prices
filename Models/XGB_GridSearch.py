@@ -21,10 +21,10 @@ class XGBoostingModel(object):
     @staticmethod
     def _define_regressor_and_parameter_candidates():
         regressor = XGBRegressor(
-            n_estimators=159, learning_rate=0.1, objective='reg:linear',
-            min_child_weight=1, max_depth=5, gamma=0, subsample=0.7,
-            colsample_bytree=0.65)
-        parameters = {'reg_alpha': [2.95, 3, 3.05, 3.1, 3.15]}
+            n_estimators=597, learning_rate=0.1, objective='reg:linear',
+            max_depth=3, min_child_weight=3, gamma=0, subsample=0.9,
+            colsample_bytree=0.1)
+        parameters = {'reg_alpha': [i/100.0 for i in range(15, 25)]}
         return regressor, parameters
 
     def grid_search_for_best_estimator(self):
@@ -32,7 +32,7 @@ class XGBoostingModel(object):
         estimator"""
         regressor, parameters = self\
             ._define_regressor_and_parameter_candidates()
-        model = GridSearchCV(regressor, parameters, cv=5, verbose=2, n_jobs=8,
+        model = GridSearchCV(regressor, parameters, cv=5, verbose=2,
                              scoring='neg_mean_squared_error', iid=False)
         model.fit(self.design_matrix[self.predictors],
                   self.design_matrix['SalePrice'])
@@ -40,7 +40,7 @@ class XGBoostingModel(object):
         print model.best_score_
         cv_results = model.cv_results_
         results = DataFrame.from_dict(cv_results, orient='columns')
-        results.to_csv('../Model_results/XGB_GridSearch9_results.csv',
+        results.to_csv('../Model_results/XGB_GridSearch13_results.csv',
                        index=False)
 
 XGBoostingModel().grid_search_for_best_estimator()

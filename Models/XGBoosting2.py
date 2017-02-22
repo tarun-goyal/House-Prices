@@ -24,9 +24,9 @@ class XGBoostingModel(object):
     def _build_model():
         """Model: Extreme Gradient Boosting model using tuned parameters"""
         model = XGBRegressor(
-            n_estimators=5000, learning_rate=0.01, max_depth=5,
-            min_child_weight=1, gamma=0, subsample=0.7, colsample_bytree=0.65,
-            reg_alpha=3.15, objective='reg:linear')
+            n_estimators=5000, learning_rate=0.01, max_depth=3,
+            min_child_weight=3, gamma=0, subsample=0.9, colsample_bytree=0.1,
+            reg_alpha=0.2, objective='reg:linear')
         return model
 
     def _execute_cross_validation(self, model, cv_folds=5,
@@ -48,13 +48,13 @@ class XGBoostingModel(object):
         # Print model report:
         print "\nCV Results"
         print cv_results
-        cv_results.to_csv("../Model_results/XGB_tuned_CV4_results.csv")
+        cv_results.to_csv("../Model_results/XGB_tuned_CV7_results.csv")
         feat_imp = pd.Series(model.booster().get_fscore()).sort_values(
             ascending=False)
         feat_imp = feat_imp[:50]
         feat_imp.plot(kind='bar', title='Feature Importance')
         plt.ylabel('Feature Importance Score')
-        plt.savefig('../Model_results/XGB_Top50_feat4_imp.png')
+        plt.savefig('../Model_results/XGB_Top50_feat7_imp.png')
 
     def _make_predictions(self):
         """Predict on provided test data"""
