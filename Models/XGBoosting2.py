@@ -48,13 +48,13 @@ class XGBoostingModel(object):
         # Print model report:
         print "\nCV Results"
         print cv_results
-        cv_results.to_csv("../Model_results/XGB_tuned_CV4_results.csv")
+        cv_results.to_csv("../Model_results/XGB_tuned_CV6_results.csv")
         feat_imp = pd.Series(model.booster().get_fscore()).sort_values(
             ascending=False)
         feat_imp = feat_imp[:50]
         feat_imp.plot(kind='bar', title='Feature Importance')
         plt.ylabel('Feature Importance Score')
-        plt.savefig('../Model_results/XGB_Top50_feat4_imp.png')
+        plt.savefig('../Model_results/XGB_Top50_feat6_imp.png')
 
     def _make_predictions(self):
         """Predict on provided test data"""
