@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from xgboost.sklearn import XGBRegressor
 
 
@@ -90,10 +91,19 @@ def _create_dummies_for_categorical_features(design_matrix):
     return design_matrix
 
 
-def clean_data(design_matrix, is_test=False):
+def clean_data(design_matrix, is_test=False, remove_outliers=False):
     """Cleaning raw data before model processing."""
     design_matrix = _impute_missing_values(design_matrix, is_test)
     design_matrix = _convert_data_types(design_matrix)
     design_matrix.fillna('None', inplace=True)
     design_matrix = _create_dummies_for_categorical_features(design_matrix)
+    if remove_outliers:
+        design_matrix = outlier_treatment(design_matrix)
+    return design_matrix
+
+
+def outlier_treatment(design_matrix, m=2.75):
+    filtered_index = abs(design_matrix['SalePrice'] - np.mean(
+        design_matrix['SalePrice'])) < m * np.std(design_matrix['SalePrice'])
+    design_matrix = design_matrix[filtered_index]
     return design_matrix
