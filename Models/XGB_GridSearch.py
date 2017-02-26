@@ -21,10 +21,12 @@ class XGBoostingModel(object):
     @staticmethod
     def _define_regressor_and_parameter_candidates():
         regressor = XGBRegressor(
-            n_estimators=597, learning_rate=0.1, objective='reg:linear',
-            max_depth=3, min_child_weight=3, gamma=0, subsample=0.9,
-            colsample_bytree=0.1)
-        parameters = {'reg_alpha': [i/100.0 for i in range(15, 25)]}
+            n_estimators=161, learning_rate=0.1, objective='reg:linear',
+            max_depth=4, gamma=0, subsample=0.75, colsample_bytree=0.65,
+            min_child_weight=4, reg_alpha=0.15)
+        parameters = {
+                'reg_alpha': [i/100.0 for i in range(5, 100, 5)],
+                'reg_lambda': [i/100.0 for i in range(45, 60, 5)]}
         return regressor, parameters
 
     def grid_search_for_best_estimator(self):
@@ -38,9 +40,9 @@ class XGBoostingModel(object):
                   self.design_matrix['SalePrice'])
         print model.best_params_
         print model.best_score_
-        cv_results = model.cv_results_
-        results = DataFrame.from_dict(cv_results, orient='columns')
-        results.to_csv('../Model_results/XGB_GridSearch13_results.csv',
-                       index=False)
+        # cv_results = model.cv_results_
+        # results = DataFrame.from_dict(cv_results, orient='columns')
+        # results.to_csv('../Model_results/XGB_GridSearch13_results.csv',
+        #                index=False)
 
 XGBoostingModel().grid_search_for_best_estimator()

@@ -66,6 +66,14 @@ def _imputation_using_mean(design_matrix, col_list, strategy):
     return design_matrix
 
 
+def _convert_data_types(design_matrix):
+    conversion_list = ['MoSold', 'YrSold', 'BedroomAbvGr', 'KitchenAbvGr',
+                       'TotRmsAbvGrd', 'GarageCars']
+    for column in conversion_list:
+        design_matrix[column] = design_matrix[column].apply(str)
+    return design_matrix
+
+
 def _normalize_continuous_features(design_matrix):
     """Normalize the continuous features"""
     feature_types = dict(design_matrix.dtypes)
@@ -90,6 +98,7 @@ def _create_dummies_for_categorical_features(design_matrix):
 def clean_data(design_matrix):
     """Cleaning raw data before model processing."""
     design_matrix = _impute_missing_values(design_matrix)
+    design_matrix = _convert_data_types(design_matrix)
     # design_matrix = _normalize_continuous_features(design_matrix)
     design_matrix = _create_dummies_for_categorical_features(design_matrix)
     return design_matrix
@@ -101,3 +110,4 @@ def clean_data(design_matrix):
 # 3. MasVnrArea: 8/1460 (Important)
 # 4. Electrical: 1/1460 (Important)
 # 5. GarageYrBlt: 81/1460 (Not important)
+
