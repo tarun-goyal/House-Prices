@@ -7,7 +7,6 @@ import data_cleansing as dc
 
 # Reading data
 house_prices = pd.read_csv("../Data/train.csv")
-test = pd.read_csv("../Data/test.csv")
 
 
 class XGBoostingModel(object):
@@ -21,12 +20,10 @@ class XGBoostingModel(object):
     @staticmethod
     def _define_regressor_and_parameter_candidates():
         regressor = XGBRegressor(
-            n_estimators=161, learning_rate=0.1, objective='reg:linear',
-            max_depth=4, gamma=0, subsample=0.75, colsample_bytree=0.65,
-            min_child_weight=4, reg_alpha=0.15)
-        parameters = {
-                'reg_alpha': [i/100.0 for i in range(5, 100, 5)],
-                'reg_lambda': [i/100.0 for i in range(45, 60, 5)]}
+            n_estimators=2066, learning_rate=0.01, objective='reg:linear',
+            max_depth=5, min_child_weight=3, gamma=0)
+        parameters = {'subsample': [i/10.0 for i in range(1, 10)],
+                      'colsample_bytree': [i/10.0 for i in range(1, 10)]}
         return regressor, parameters
 
     def grid_search_for_best_estimator(self):

@@ -14,8 +14,8 @@ Condition1,object
 Condition2,object
 BldgType,object
 HouseStyle,object
-OverallQual,int64
-OverallCond,int64
+OverallQual,object
+OverallCond,object
 YearBuilt,int64
 YearRemodAdd,int64
 RoofStyle,object

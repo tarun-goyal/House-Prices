@@ -8,7 +8,6 @@ from xgboost.sklearn import XGBRegressor
 
 # Reading data
 house_prices = pd.read_csv("../Data/train.csv")
-test = pd.read_csv("../Data/test.csv")
 rcParams['figure.figsize'] = 18, 12
 
 
@@ -25,8 +24,8 @@ class XGBoostingModel(object):
         """Model: Extreme Gradient Boosting model using tuned parameters"""
         model = XGBRegressor(
             n_estimators=5000, learning_rate=0.01, objective='reg:linear',
-            max_depth=4, min_child_weight=4, gamma=0, subsample=0.75,
-            colsample_bytree=0.65, reg_alpha=0.15)
+            max_depth=5, min_child_weight=3, gamma=0, subsample=0.8,
+            colsample_bytree=0.6)
         return model
 
     def _execute_cross_validation(self, model, cv_folds=5,
@@ -48,24 +47,13 @@ class XGBoostingModel(object):
         # Print model report:
         print "\nCV Results"
         print cv_results
-        cv_results.to_csv("../Model_results/XGB_tuned_CV9_results_25292.csv")
+        cv_results.to_csv("../Model_results/XGB_tuned_CV8_results.csv")
         feat_imp = pd.Series(model.booster().get_fscore()).sort_values(
             ascending=False)
         feat_imp = feat_imp[:50]
         feat_imp.plot(kind='bar', title='Feature Importance')
         plt.ylabel('Feature Importance Score')
-        plt.savefig('../Model_results/XGB_Top50_feat9_imp.png')
-
-    def _make_predictions(self):
-        """Predict on provided test data"""
-        test_data = dc.clean_data(test)
-        predictors = [pred for pred in self.predictors if pred in list(
-            test_data.columns.values)]
-        model = self._build_model()
-        model.fit(self.design_matrix[predictors],
-                  self.design_matrix['SalePrice'])
-        test_data['SalePrice'] = model.predict(test_data[predictors])
-        return test_data
+        plt.savefig('../Model_results/XGB_Top50_feat8_imp.png')
 
     def submit_solution(self):
         """Submit the solution file"""
