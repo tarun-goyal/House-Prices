@@ -28,7 +28,7 @@ class XGBoostingModel(object):
     def _build_model(train_data, predictors):
         """Model: Extreme Gradient Boosting model using tuned parameters"""
         model = XGBRegressor(
-            n_estimators=2312, learning_rate=0.01, objective='reg:linear',
+            n_estimators=2056, learning_rate=0.01, objective='reg:linear',
             max_depth=5, min_child_weight=3, gamma=0, subsample=0.8,
             colsample_bytree=0.6)
         model.fit(train_data[predictors], train_data['SalePrice'])
@@ -52,7 +52,7 @@ class XGBoostingModel(object):
 
     def _make_predictions(self):
         """Predict on provided test data"""
-        test_data = dc.clean_data(test, is_test=True)
+        test_data = dc.clean_data(test)
         predictors = [pred for pred in self.predictors if pred in list(
             test_data.columns.values)]
         model = self._build_model(self.design_matrix, predictors)
@@ -66,7 +66,7 @@ class XGBoostingModel(object):
         submission = test[['Id']]
         submission['SalePrice'] = predictions['SalePrice']
         submission.to_csv(
-            "../Submissions/submission_XGB_best_estimator15_" + str(
+            "../Submissions/submission_XGB_best_estimator16_" + str(
                 eval_metric) + ".csv", index=False)
 
 XGBoostingModel().submit_solution()

@@ -47,13 +47,13 @@ class XGBoostingModel(object):
         # Print model report:
         print "\nCV Results"
         print cv_results
-        cv_results.to_csv("../Model_results/XGB_tuned_CV8_results.csv")
+        cv_results.to_csv("../Model_results/XGB_tuned_CV9_results.csv")
         feat_imp = pd.Series(model.booster().get_fscore()).sort_values(
             ascending=False)
         feat_imp = feat_imp[:50]
         feat_imp.plot(kind='bar', title='Feature Importance')
         plt.ylabel('Feature Importance Score')
-        plt.savefig('../Model_results/XGB_Top50_feat8_imp.png')
+        plt.savefig('../Model_results/XGB_Top50_feat9_imp.png')
 
     def submit_solution(self):
         """Submit the solution file"""
