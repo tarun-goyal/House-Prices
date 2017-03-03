@@ -3,7 +3,7 @@ import numpy as np
 from xgboost.sklearn import XGBRegressor
 
 
-def _impute_missing_values(design_matrix, is_test):
+def _impute_missing_values(design_matrix):
     """Impute values for all the features having missing values."""
     missing_cols = {'mean': ['MasVnrArea'],
                     'mode': ['MasVnrType', 'Electrical', 'GarageYrBlt'],
@@ -12,9 +12,8 @@ def _impute_missing_values(design_matrix, is_test):
                              'GarageArea']}
     design_matrix = _imputation_using_regression(design_matrix)
     design_matrix = _imputation_using_mean(design_matrix, missing_cols['mean'])
-    if is_test:
-        for col in missing_cols['zero']:
-            design_matrix[col].fillna(0, inplace=True)
+    for col in missing_cols['zero']:
+        design_matrix[col].fillna(0, inplace=True)
     for col in missing_cols['mode']:
         design_matrix[col] = design_matrix[col].fillna(
             design_matrix[col].value_counts().index[0])
@@ -24,7 +23,7 @@ def _impute_missing_values(design_matrix, is_test):
 def _imputation_using_regression(design_matrix):
 
     missing_col = 'LotFrontage'
-    predictors = ['LotArea', 'LotShape', 'LotConfig']
+    predictors = ['LotArea', 'LotShape', 'LotConfig', 'Street', 'PavedDrive']
     non_na_rows = design_matrix.dropna(subset=[missing_col])
     na_rows = design_matrix[design_matrix[missing_col].isnull()]
 
@@ -91,9 +90,9 @@ def _create_dummies_for_categorical_features(design_matrix):
     return design_matrix
 
 
-def clean_data(design_matrix, is_test=False, remove_outliers=False):
+def clean_data(design_matrix, remove_outliers=False):
     """Cleaning raw data before model processing."""
-    design_matrix = _impute_missing_values(design_matrix, is_test)
+    design_matrix = _impute_missing_values(design_matrix)
     design_matrix = _convert_data_types(design_matrix)
     design_matrix.fillna('None', inplace=True)
     design_matrix = _create_dummies_for_categorical_features(design_matrix)
