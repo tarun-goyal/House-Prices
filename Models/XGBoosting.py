@@ -19,7 +19,7 @@ def _train_validation_split(design_matrix):
 class XGBoostingModel(object):
 
     def __init__(self):
-        self.design_matrix = dc.clean_data(house_prices)
+        self.design_matrix = dc.clean_data(house_prices, remove_outliers=True)
         self.predictors = [ele for ele in list(
             self.design_matrix.columns.values) if ele not in
                            ['Id', 'SalePrice']]
